@@ -4,7 +4,7 @@
   "description": "",
   "main": "main.js",
   "scripts": {
-    "start": "ts-node index.ts"
+    "start": "ts-node --project tsconfig.json index.ts"
   },
   "author": "",
   "license": "ISC",

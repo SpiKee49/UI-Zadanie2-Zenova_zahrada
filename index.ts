@@ -12,6 +12,7 @@ type Population = Array<Individual>
 //mapa
 let map = Array(12).fill(Array(10).fill('_'))
 
+console.log('map keys', map.keys())
 //Starting map print
 function printMap(map: Grid) {
     let mapToPrint: Grid = []
@@ -35,30 +36,8 @@ function randomize(array: number[]) {
     return array.sort(() => (Math.random() > 0.5 ? 1 : -1))
 }
 
-//population
-let population: Population = []
-
-for (let i = 0; i < 100; i++) {
-    let individual: number[] = randomize(array)
-
-    population.push(
-        individual.map((genPosition): Gen => {
-            let decisions: string[] = []
-            for (let j = 0; j < 20; j++) {
-                decisions.push(Math.floor(Math.random() * 2) == 1 ? 'L' : 'R')
-            }
-
-            return {
-                position: genPosition,
-                decisions: decisions,
-            }
-        })
-    )
-}
-
 //fittnes function
 function fitness(input: Individual) {
-    const index = population.indexOf(input)
     const individual: Individual = input.map((gen): Gen => {
         return {
             position: gen.position,
@@ -66,30 +45,31 @@ function fitness(input: Individual) {
         }
     })
 
-    let grind = map.map((item) => [...item])
-    console.log(grind[0])
-
+    let grind: Grid = map.map((item) => [...item])
     let score: number = 0
 
     let direction: string
+    //take one gen a try to make move
     individual.forEach((gen) => {
-        if (gen.position < 12) {
+        if (gen.position <= 12) {
             //will be going down
             direction = 'DOWN'
-        } else if (gen.position >= 12 && gen.position < 20) {
+        } else if (gen.position > 12 && gen.position <= 20) {
             //will be going left mainly
             direction = 'LEFT'
-        } else if (gen.position >= 20 && gen.position < 32) {
+        } else if (gen.position > 20 && gen.position <= 32) {
             //will be going up
             direction = 'UP'
-        } else if (gen.position >= 32 && gen.position < 40) {
+        } else if (gen.position > 32 && gen.position <= 40) {
             //will be going right mainly
             direction = 'RIGHT'
         }
 
-        movement(gen, direction, grind, index, score)
+        movement(gen, direction, grind, score)
     })
     printMap(grind)
+
+    return score
 }
 
 //movement function
@@ -97,59 +77,54 @@ function movement(
     gen: Gen,
     initialDirection: string,
     globalMap: Grid,
-    index: number,
     score: number
 ) {
+    let iter: number = 1
     let x: number = 0
     let y: number = 0
     let direction: string = initialDirection
     let stuckOrDone: boolean = false
-    console.log({
-        genPos: gen.position,
-        direction,
-    })
-    switch (initialDirection) {
-        case 'DOWN':
-            if (globalMap[gen.position][0] != '_') return 0
-            x = gen.position
-            break
-        case 'UP':
-            if (globalMap[31 - gen.position][9] != '_') return 0
-            x = 31 - gen.position
-            y = 9
-            break
-        case 'LEFT':
-            if (globalMap[11][13 - gen.position] != '_') return 0
-            x = 11
-            y = 13 - gen.position
-            break
-        case 'RIGHT':
-            if (globalMap[0][40 - gen.position] != '_') return 0
-            y = 40 - gen.position
-            break
+
+    //checkout intial direction and calculate starting tile
+    if (initialDirection == 'DOWN' && globalMap[gen.position - 1][0] === '_') {
+        x = gen.position - 1
+    } else if (
+        initialDirection == 'UP' &&
+        globalMap[31 - (gen.position - 1)][9] === '_'
+    ) {
+        x = 31 - (gen.position - 1)
+        y = 9
+    } else if (
+        initialDirection == 'LEFT' &&
+        globalMap[11][13 - (gen.position - 1)] === '_'
+    ) {
+        x = 11
+        y = 13 - (gen.position - 1)
+    } else if (
+        initialDirection == 'RIGHT' &&
+        globalMap[0][40 - gen.position - 1] === '_'
+    ) {
+        y = 40 - (gen.position - 1)
+    } else {
+        //if we cant start in occupied position
+        return 0
     }
 
-    console.log('v mape > ' + globalMap[x].length)
-    printMap(globalMap)
+    console.log({
+        direction,
+        pos: gen.position,
+        x,
+        y,
+    })
+    console.log('globalMap[x][y]: ', globalMap[x][y])
 
+    // make all the moves for current gen
     while (stuckOrDone != true) {
         if (globalMap[x][y] == '_') {
-            globalMap[x][y] = index.toString()
+            //next tile is empty, we can put number of current gen in there
+            globalMap[x][y] = iter.toString()
+
             score += 1
-            switch (direction) {
-                case 'DOWN':
-                    y++
-                    break
-                case 'UP':
-                    y--
-                    break
-                case 'RIGHT':
-                    x++
-                    break
-                case 'LEFT':
-                    x--
-                    break
-            }
         } else {
             switch (direction) {
                 case 'DOWN':
@@ -194,22 +169,49 @@ function movement(
                     }
                     break
             }
-            switch (direction) {
-                case 'DOWN':
-                    y++
-                    break
-                case 'UP':
-                    y--
-                    break
-                case 'RIGHT':
-                    x++
-                    break
-                case 'LEFT':
-                    x--
-                    break
-            }
         }
+        // depending on direction we move to next tile
+
+        if (direction === 'DOWN') {
+            y += 1
+        } else if (direction === 'UP') {
+            y -= 1
+        } else if (direction === 'RIGHT') {
+            x += 1
+        } else if (direction === 'LEFT') {
+            y -= 1
+        }
+
+        iter += 1
     }
 }
 
-fitness(population[1])
+function main() {
+    //population
+    let population: Population = []
+
+    //populiation initialization
+    for (let i = 0; i < 100; i++) {
+        let individual: number[] = randomize(array)
+
+        population.push(
+            individual.map((genPosition): Gen => {
+                let decisions: string[] = []
+                for (let j = 0; j < 20; j++) {
+                    decisions.push(
+                        Math.floor(Math.random() * 2) == 1 ? 'L' : 'R'
+                    )
+                }
+
+                return {
+                    position: genPosition,
+                    decisions: decisions,
+                }
+            })
+        )
+    }
+
+    fitness(population[0])
+}
+
+main()
