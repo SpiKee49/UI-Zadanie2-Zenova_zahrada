@@ -36,27 +36,13 @@ function movement(
         y = 40 - (gen.position - 1)
     } else {
         //if we cant start in occupied position
-        console.log('Skipped')
-        console.log({
-            index,
-            pos: gen.position,
-            direction,
-            x,
-            y,
-        })
+
         return { stuckOrDone: true, score }
     }
-    console.log('\n----------------\n')
-    console.log({
-        pos: gen.position,
-        direction,
-        x,
-        y,
-    })
 
     // make all the moves for current gen
     while (stuckOrDone != true) {
-        console.log({ direction, x, y })
+        // console.log({ direction, x, y })
         if (globalMap[x][y] == '_') {
             //next tile is empty, we can put number of current gen in there
             globalMap[x][y] = index.toString()
@@ -65,6 +51,7 @@ function movement(
         } else {
             if (direction === 'DOWN' || direction === 'UP') {
                 y = direction == 'DOWN' ? y - 1 : y + 1
+                //check if he can turn in both directions
                 if (
                     x - 1 >= 0 &&
                     globalMap[x - 1][y] == '_' &&
@@ -73,18 +60,21 @@ function movement(
                 ) {
                     direction = gen.decisions.shift() == 'L' ? 'LEFT' : 'RIGHT'
                 } else if (x - 1 >= 0 && globalMap[x - 1][y] == '_') {
+                    //if not check if left
                     direction = 'LEFT'
                 } else if (
-                    x + 1 < globalMap.length &&
+                    x + 1 < globalMap.length && //if not check if right
                     globalMap[x + 1][y] == '_'
                 ) {
                     direction = 'RIGHT'
                 } else {
+                    //if he gets stuck
                     console.log('down or up cant continue')
 
                     stuckOrDone = true
                 }
             } else {
+                //same principle as with left or right but with up or down
                 x = direction == 'RIGHT' ? x - 1 : x + 1
                 if (
                     y - 1 >= 0 &&
