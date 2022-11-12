@@ -1,7 +1,5 @@
 import { Gen, Grid } from './types'
 
-import { printMap } from '.'
-
 function movement(
     gen: Gen,
     initialDirection: string,
@@ -15,6 +13,9 @@ function movement(
     let stuckOrDone: boolean = false
 
     //checkout intial direction and calculate starting tile
+    // console.log({
+    //     genPos: gen.position - 1,
+    // })
     if (initialDirection == 'DOWN' && globalMap[gen.position - 1][0] === '_') {
         x = gen.position - 1
     } else if (
@@ -36,8 +37,7 @@ function movement(
         y = 40 - (gen.position - 1)
     } else {
         //if we cant start in occupied position
-
-        return { stuckOrDone: true, score }
+        return { stuckOrDone: false, score, move: false }
     }
 
     // make all the moves for current gen
@@ -69,7 +69,7 @@ function movement(
                     direction = 'RIGHT'
                 } else {
                     //if he gets stuck
-                    console.log('down or up cant continue')
+                    // console.log('down or up cant continue')
 
                     stuckOrDone = true
                 }
@@ -91,12 +91,13 @@ function movement(
                 ) {
                     direction = 'DOWN'
                 } else {
-                    console.log('left or right cant continue ')
+                    // console.log('left or right cant continue ')
                     stuckOrDone = true
                 }
             }
         }
         // depending on direction we move to next tile
+
         if (direction === 'DOWN' && y < 9) {
             y += 1
         } else if (direction === 'UP' && y > 0) {
@@ -109,8 +110,7 @@ function movement(
             break
         }
     }
-    printMap(globalMap)
-    return { stuckOrDone, score }
+    return { stuckOrDone, score, move: true }
 }
 
 export default movement

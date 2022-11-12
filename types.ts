@@ -12,4 +12,10 @@ export type Population = Array<Individual>
 export type GradedPopulation = {
     individual: Individual
     score: number
+    grid: Grid
+}
+
+export type CurrentlyBest = {
+    score: number
+    grid: Grid
 }

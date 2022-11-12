@@ -1,6 +1,7 @@
 import { Gen, Grid, Individual } from './types'
 
 import movement from './movement'
+import { printMap } from './index'
 
 //fittnes function
 function fitness(input: Individual, map: Grid) {
@@ -15,14 +16,12 @@ function fitness(input: Individual, map: Grid) {
     let numberOfTiles: number = 0
 
     let direction: string
+    let moveIndex: number = 1
     //take one gen a try to make move
     for (let i = 0; i < individual.length; i++) {
-        console.log(i)
         if (dontBotherChecking) {
-            console.log('dontBotherChecking')
             break
         }
-
         if (individual[i].position <= 12) {
             //will be going down
             direction = 'DOWN'
@@ -46,17 +45,22 @@ function fitness(input: Individual, map: Grid) {
             direction = 'RIGHT'
         }
 
-        const { stuckOrDone, score } = movement(
+        const { stuckOrDone, score, move } = movement(
             individual[i],
             direction,
             grid,
-            i + 1
+            moveIndex
         )
+        moveIndex += move ? 1 : 0
         dontBotherChecking = stuckOrDone
         numberOfTiles += score
     }
 
-    return numberOfTiles
+    // if (numberOfTiles > 110) {
+    //     console.log('\n' + numberOfTiles)
+    //     printMap(grid)
+    // }
+    return { numberOfTiles, grid }
 }
 
 export default fitness

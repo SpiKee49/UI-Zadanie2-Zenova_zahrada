@@ -1,4 +1,4 @@
-import { Gen, GradedPopulation, Grid, Individual, Population } from './types'
+import { CurrentlyBest, Gen, GradedPopulation, Grid, Population } from './types'
 
 import fitness from './fitness'
 
@@ -50,11 +50,10 @@ function randomize(array: number[]) {
 function solve() {
     //population
     let population: Population = []
-
-    //populiation initialization
+    let currentlyBest: CurrentlyBest
+    //populiation first initialization
     for (let i = 0; i < 100; i++) {
         let individual: number[] = randomize(array)
-
         population.push(
             individual.map((genPosition): Gen => {
                 let decisions: string[] = []
@@ -71,17 +70,34 @@ function solve() {
             })
         )
     }
-    const newGeneration: GradedPopulation[] = population.map((item) => {
-        return { individual: item, score: fitness(item, map) }
-    })
 
-    elitism(newGeneration)
+    for (let index = 0; index < 100000; index++) {
+        let stop = false
+        //fitness above every individual in generation
+        const newGeneration: GradedPopulation[] = population.map((item) => {
+            const { numberOfTiles, grid } = fitness(item, map)
+
+            if (
+                currentlyBest == undefined ||
+                currentlyBest.score < numberOfTiles
+            ) {
+                currentlyBest = { score: numberOfTiles, grid }
+            }
+
+            return { individual: item, score: numberOfTiles, grid }
+        })
+        population = tournament(newGeneration)
+        if (stop || newGeneration.find((item) => item.score >= 114)) break
+    }
+
+    console.log('Bestest solution was:')
+    console.log(currentlyBest.score)
+    printMap(currentlyBest.grid)
 }
 
 solve()
 
 function elitism(population: GradedPopulation[]) {
-    const mutationChance = 0.1
     let newPopulation: Population = []
 
     //get top 20 best results from last generation
@@ -94,21 +110,86 @@ function elitism(population: GradedPopulation[]) {
     //Create new generation from matingPool
     while (newPopulation.length < 100) {
         //get two random elements
-        let parents = matingPool.sort(() => 0.5 - Math.random()).slice(0, 2)
+        const parents = matingPool.sort(() => 0.5 - Math.random()).slice(0, 2)
 
         //get part where to split chromosomes
-        const sliceAt = Math.floor(Math.random() * (parents[0].length - 1))
+        const sliceAt = Math.floor(Math.random() * (parents[0].length - 1) + 1)
 
         //create 2 new children by crossing
-        let child1 = parents[0]
+        const child1 = parents[0]
             .slice(0, sliceAt)
             .concat(parents[1].slice(sliceAt))
 
-        let child2 = parents[1]
+        const child2 = parents[1]
             .slice(0, sliceAt)
             .concat(parents[0].slice(sliceAt))
 
-        console.log(child1.length)
-        break
+        newPopulation.push(child1)
+        newPopulation.push(child2)
+    }
+
+    mutation(newPopulation)
+    return newPopulation
+}
+
+function tournament(population: GradedPopulation[]) {
+    let newPopulation: Population = []
+
+    while (newPopulation.length < 100) {
+        const numbers = []
+        const parents: Population = []
+        //get 4 indexed for tournament members
+        for (let index = 0; index < 4; index++) {
+            let random = Math.floor(Math.random() * 99)
+            while (numbers.includes(random)) {
+                random = Math.floor(Math.random() * 99)
+            }
+            numbers.push(random)
+        }
+        parents.push(
+            population[numbers[0]].score > population[numbers[1]].score
+                ? population[numbers[0]].individual
+                : population[numbers[1]].individual
+        )
+        parents.push(
+            population[numbers[2]].score > population[numbers[3]].score
+                ? population[numbers[2]].individual
+                : population[numbers[3]].individual
+        )
+
+        //get part where to split chromosomes
+        const sliceAt = Math.floor(Math.random() * (parents[0].length - 1) + 1)
+
+        //create 2 new children by crossing
+        const child1 = parents[0]
+            .slice(0, sliceAt)
+            .concat(parents[1].slice(sliceAt))
+
+        const child2 = parents[1]
+            .slice(0, sliceAt)
+            .concat(parents[0].slice(sliceAt))
+
+        newPopulation.push(child1)
+        newPopulation.push(child2)
+    }
+    mutation(newPopulation)
+
+    return newPopulation
+}
+
+function mutation(population: Population) {
+    const mutationChance = 0.1
+    for (let individual of population) {
+        if (!(mutationChance - Math.random())) continue
+
+        let mutatedPosition: number = 0
+
+        do {
+            mutatedPosition = Math.floor(Math.random() * 39 + 1)
+        } while (
+            individual.map((item) => item.position).includes(mutatedPosition)
+        )
+        individual[Math.floor(Math.random() * individual.length)].position =
+            mutatedPosition
     }
 }
