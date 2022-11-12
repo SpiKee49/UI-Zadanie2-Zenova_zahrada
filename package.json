@@ -2,7 +2,6 @@
   "name": "zadanie-2",
   "version": "1.0.0",
   "description": "",
-  "main": "main.js",
   "scripts": {
     "start": "ts-node --project tsconfig.json index.ts"
   },
