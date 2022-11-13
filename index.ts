@@ -5,7 +5,6 @@ import fitness from './fitness'
 //Starting map print
 export function printMap(map: Grid) {
     let mapToPrint: Grid = []
-
     for (let index = 0; index < map[0].length; index++) {
         let row: string[] = []
         map.forEach((item) => row.push(item[index]))
@@ -13,19 +12,13 @@ export function printMap(map: Grid) {
     }
 
     mapToPrint.forEach((item) => {
-        console.log(
-            item
-                .map((item) =>
-                    item != '_' && +item >= 10 ? `${item} ` : ` ${item} `
-                )
-                .join('')
-        )
+        console.log(item.join(''))
     })
 }
 
 //function to randomize array
 function randomize(array: number[], maxGens: number) {
-    return array.sort(() => (Math.random() > 0.5 ? 1 : -1)).slice(0, 28)
+    return array.sort(() => (Math.random() > 0.5 ? 1 : -1)).slice(0, maxGens)
 }
 
 let map: Grid = []
@@ -43,12 +36,12 @@ function solve() {
     //mapa
     map = Array.from(Array(+numberOfColumns), () => {
         return Array.from(Array(+numberOfRows), () => {
-            return '_'
+            return '\u2591'
         })
     })
     rocks.split('|').forEach((item) => {
         const cords = item.split(',').map((item) => Number(item))
-        map[cords[0] - 1][cords[1] - 1] = 'R'
+        map[cords[0] - 1][cords[1] - 1] = '\u2587'
     })
 
     //starting positions array
