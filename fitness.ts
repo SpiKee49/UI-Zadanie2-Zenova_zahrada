@@ -22,24 +22,24 @@ function fitness(input: Individual, map: Grid) {
         if (dontBotherChecking) {
             break
         }
-        if (individual[i].position <= 12) {
+        if (individual[i].position <= grid.length) {
             //will be going down
             direction = 'DOWN'
         } else if (
-            individual[i].position > 12 &&
-            individual[i].position <= 20
+            individual[i].position > grid.length &&
+            individual[i].position <= grid.length + grid[0].length - 2
         ) {
             //will be going left mainly
             direction = 'LEFT'
         } else if (
-            individual[i].position > 20 &&
-            individual[i].position <= 32
+            individual[i].position > grid.length + grid[0].length - 2 &&
+            individual[i].position <= 2 * grid.length + grid[0].length - 2
         ) {
             //will be going up
             direction = 'UP'
         } else if (
-            individual[i].position > 32 &&
-            individual[i].position <= 40
+            individual[i].position > 2 * grid.length + grid[0].length - 2 &&
+            individual[i].position <= 2 * grid.length + 2 * grid[0].length - 4
         ) {
             //will be going right mainly
             direction = 'RIGHT'

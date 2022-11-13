@@ -2,20 +2,7 @@ import { CurrentlyBest, Gen, GradedPopulation, Grid, Population } from './types'
 
 import fitness from './fitness'
 
-//mapa
-let map = Array.from(Array(12), () => {
-    return Array.from(Array(10), () => {
-        return '_'
-    })
-})
-map[1][2] = 'R'
-map[2][4] = 'R'
-map[4][3] = 'R'
-map[5][1] = 'R'
-map[8][6] = 'R'
-map[9][6] = 'R'
 //Starting map print
-
 export function printMap(map: Grid) {
     let mapToPrint: Grid = []
 
@@ -36,24 +23,48 @@ export function printMap(map: Grid) {
     })
 }
 
-//starting positions array
-const array = Array(40)
-    .fill(0)
-    .map((_, index) => index + 1)
-
 //function to randomize array
-function randomize(array: number[]) {
+function randomize(array: number[], maxGens: number) {
     return array.sort(() => (Math.random() > 0.5 ? 1 : -1)).slice(0, 28)
 }
 
+let map: Grid = []
+
 //Main function
 function solve() {
+    const prompt = require('prompt-sync')({ sigint: true })
+    const numberOfColumns: string = prompt('Pocet stlpcov (napr. 12): ')
+    const numberOfRows: string = prompt('Pocet riadkov (napr. 12): ')
+    const rocks: string = prompt('Suradnice kamenov (v tvare x,y|x,y...): ')
+    const selection: string = prompt(
+        'Metoda vyberu (1 - elitizmus, 2 - turnajovy): '
+    )
+    console.log('[i] Processing...')
+    //mapa
+    map = Array.from(Array(+numberOfColumns), () => {
+        return Array.from(Array(+numberOfRows), () => {
+            return '_'
+        })
+    })
+    rocks.split('|').forEach((item) => {
+        const cords = item.split(',').map((item) => Number(item))
+        map[cords[0] - 1][cords[1] - 1] = 'R'
+    })
+
+    //starting positions array
+    const array = Array(+numberOfColumns * 2 + +numberOfRows * 2 - 4)
+        .fill(0)
+        .map((_, index) => index + 1)
+
     //population
     let population: Population = []
     let currentlyBest: CurrentlyBest
     //populiation first initialization
     for (let i = 0; i < 100; i++) {
-        let individual: number[] = randomize(array)
+        let individual: number[] = randomize(
+            array,
+            +numberOfColumns + +numberOfRows + rocks.split('|').length
+        )
         population.push(
             individual.map((genPosition): Gen => {
                 let decisions: string[] = []
@@ -86,12 +97,23 @@ function solve() {
 
             return { individual: item, score: numberOfTiles, grid }
         })
-        population = tournament(newGeneration)
-        if (stop || newGeneration.find((item) => item.score >= 114)) break
+        population =
+            selection == '1'
+                ? elitism(newGeneration)
+                : tournament(newGeneration)
+        if (
+            stop ||
+            newGeneration.find(
+                (item) =>
+                    item.score >=
+                    +numberOfColumns * +numberOfRows - rocks.split('|').length
+            )
+        )
+            break
     }
 
     console.log('Bestest solution was:')
-    console.log(currentlyBest.score)
+    console.log('Score ' + currentlyBest.score)
     printMap(currentlyBest.grid)
 }
 
@@ -185,7 +207,9 @@ function mutation(population: Population) {
         let mutatedPosition: number = 0
 
         do {
-            mutatedPosition = Math.floor(Math.random() * 39 + 1)
+            mutatedPosition = Math.floor(
+                Math.random() * (2 * map.length + 2 * map[0].length - 5) + 1
+            )
         } while (
             individual.map((item) => item.position).includes(mutatedPosition)
         )

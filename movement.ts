@@ -10,45 +10,55 @@ function movement(
     let x: number = 0
     let y: number = 0
     let direction: string = initialDirection
+
+    // variable representing if the monk completed his turn or if he got stuck in the mean time
     let stuckOrDone: boolean = false
 
     //checkout intial direction and calculate starting tile
-    // console.log({
-    //     genPos: gen.position - 1,
-    // })
     if (initialDirection == 'DOWN' && globalMap[gen.position - 1][0] === '_') {
         x = gen.position - 1
     } else if (
         initialDirection == 'UP' &&
-        globalMap[31 - (gen.position - 1)][9] === '_'
+        globalMap[
+            globalMap.length * 2 + globalMap[0].length - 3 - (gen.position - 1)
+        ][globalMap[0].length - 1] === '_'
     ) {
-        x = 31 - (gen.position - 1)
-        y = 9
+        x = globalMap.length * 2 + globalMap[0].length - 3 - (gen.position - 1)
+        y = globalMap[0].length - 1
     } else if (
         initialDirection == 'LEFT' &&
-        globalMap[11][gen.position - 11] === '_'
+        globalMap[globalMap.length - 1][gen.position - globalMap.length - 1] ===
+            '_'
     ) {
-        x = 11
-        y = gen.position - 11
+        x = globalMap.length - 1
+        y = gen.position - globalMap.length - 1
     } else if (
         initialDirection == 'RIGHT' &&
-        globalMap[0][40 - (gen.position - 1)] === '_'
+        globalMap[0][
+            2 * globalMap.length +
+                2 * globalMap[0].length -
+                4 -
+                (gen.position - 1)
+        ] === '_'
     ) {
-        y = 40 - (gen.position - 1)
+        y =
+            2 * globalMap.length +
+            2 * globalMap[0].length -
+            4 -
+            (gen.position - 1)
     } else {
-        //if we cant start in occupied position
+        //if we cant start in occupied position we continue to the next turn
         return { stuckOrDone: false, score, move: false }
     }
 
     // make all the moves for current gen
     while (stuckOrDone != true) {
-        // console.log({ direction, x, y })
         if (globalMap[x][y] == '_') {
-            //next tile is empty, we can put number of current gen in there
+            //current tile is empty, we can put number of current gen in there
             globalMap[x][y] = index.toString()
-
             score += 1
         } else {
+            //if the next tile isn't empty
             if (direction === 'DOWN' || direction === 'UP') {
                 y = direction == 'DOWN' ? y - 1 : y + 1
                 //check if he can turn in both directions
@@ -59,18 +69,17 @@ function movement(
                     globalMap[x + 1][y] == '_'
                 ) {
                     direction = gen.decisions.shift() == 'L' ? 'LEFT' : 'RIGHT'
-                } else if (x - 1 >= 0 && globalMap[x - 1][y] == '_') {
-                    //if not check if left
+                } //if not check if left
+                else if (x - 1 >= 0 && globalMap[x - 1][y] == '_') {
                     direction = 'LEFT'
-                } else if (
-                    x + 1 < globalMap.length && //if not check if right
+                } //if not check if right
+                else if (
+                    x + 1 < globalMap.length &&
                     globalMap[x + 1][y] == '_'
                 ) {
                     direction = 'RIGHT'
                 } else {
-                    //if he gets stuck
-                    // console.log('down or up cant continue')
-
+                    //if monk gets stuck
                     stuckOrDone = true
                 }
             } else {
@@ -91,18 +100,18 @@ function movement(
                 ) {
                     direction = 'DOWN'
                 } else {
-                    // console.log('left or right cant continue ')
                     stuckOrDone = true
                 }
             }
         }
-        // depending on direction we move to next tile
 
-        if (direction === 'DOWN' && y < 9) {
+        // depending on direction we move to next tile
+        if (direction === 'DOWN' && y < globalMap[0].length - 1) {
+            //have to check for map limits
             y += 1
         } else if (direction === 'UP' && y > 0) {
             y -= 1
-        } else if (direction === 'RIGHT' && x < 11) {
+        } else if (direction === 'RIGHT' && x < globalMap.length - 1) {
             x += 1
         } else if (direction === 'LEFT' && x > 0) {
             x -= 1
